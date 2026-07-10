@@ -1,15 +1,16 @@
-&HEAD CHID='street_fire', TITLE='Massive Row House Roof Fire with High Fidelity Details' /
+&HEAD CHID='street_fire', TITLE='Photo-matched Row House Fire - Visible HRRPUV Flame Plume' /
 
 ! ==========================================================
-! 1. 网格设置 (MESH) - 20核并行
+! 1. 网格设置 (MESH) - 20块并行网格，覆盖整条街景
 ! ==========================================================
 &MULT ID='mesh_mult', DX=5.0, DY=5.0, I_UPPER=3, J_UPPER=4 /
 &MESH IJK=10,10,50, XB=-10.0,-5.0, -10.0,-5.0, 0.0,25.0, MULT_ID='mesh_mult' /
 
 &TIME T_END=60.0 /
+&DUMP DT_HRR=0.5, DT_SLCF=0.25, DT_BNDF=1.0 /
 
 ! ==========================================================
-! 3. 边界条件 (VENT)
+! 2. 开边界条件 (VENT)
 ! ==========================================================
 &VENT MB='XMIN', SURF_ID='OPEN' /
 &VENT MB='XMAX', SURF_ID='OPEN' /
@@ -18,113 +19,137 @@
 &VENT MB='ZMAX', SURF_ID='OPEN' /
 
 ! ==========================================================
-! 4. 燃烧反应物 (REAC) 
+! 3. 燃烧反应物 (REAC)
 ! ==========================================================
-&REAC FUEL='PROPANE', SOOT_YIELD=0.15 /
-
-! ==========================================================
-! 5. 材质与颜色 (SURF) - 引入照片中的丰富色彩
-! ==========================================================
-&SURF ID='BRICK_WALL', COLOR='FIREBRICK' /   ! 左侧红砖
-&SURF ID='DARK_SIDING', COLOR='DIM GRAY' /   ! 起火建筑深灰色
-&SURF ID='LIGHT_SIDING', COLOR='WHEAT' /     ! 右侧浅色建筑
-&SURF ID='ORANGE_BASE', COLOR='CORAL' /      ! [细节] 右侧建筑的一楼橙红色底商涂装
-&SURF ID='ROOF', COLOR='BLACK' /             ! 屋顶
-&SURF ID='STREET', COLOR='GRAY 50' /         ! 街道
-&SURF ID='AWNING', COLOR='SLATE GRAY' /      ! 底商遮阳篷
-&SURF ID='FIRE_ENGINE', COLOR='RED' /        ! 消防车
-&SURF ID='CAR', COLOR='SILVER' /             ! [细节] 前景银色轿车
-&SURF ID='POLE', COLOR='BLACK' /             ! [细节] 路灯杆
-
-! 极致火源：2500 kW/m2
-&SURF ID='MASSIVE_FIRE', HRRPUA=2500.0, COLOR='RED' / 
+&REAC FUEL='PROPANE', SOOT_YIELD=0.08 /
 
 ! ==========================================================
-! 6. 场景几何建模 (OBST & HOLE) - 深度还原外立面
+! 4. 材质与颜色 (SURF) - 按照片的真实相对颜色建模
 ! ==========================================================
-! [基础地形] 前方街道
-&OBST XB=-10.0,10.0, -10.0,0.0, 0.0,0.1, SURF_ID='STREET' /
-
-! [照片细节] 前景右侧停放的消防车 (右下角)
-&OBST XB=5.0,10.0, -9.0,-6.0, 0.1,3.0, SURF_ID='FIRE_ENGINE' /
-
-! [照片细节] 停在起火建筑正前方的银色轿车
-&OBST XB=-0.5,3.5, -5.0,-3.0, 0.1,1.5, SURF_ID='CAR' /
-
-! [照片细节] 街道上的路灯电线杆
-&OBST XB=-0.5,0.0, -2.5,-2.0, 0.0,12.0, SURF_ID='POLE' /
-
-
-! ---------------- 左侧红砖建筑 ----------------
-&OBST XB=-10.0,-4.0, 0.0,15.0, 0.0,10.0, SURF_ID='BRICK_WALL' /
-! 内部掏空
-&HOLE XB=-9.5,-4.5, 0.5,14.5, 0.5,9.5 /
-! [照片细节] 还原左侧红砖楼的三列特征窗户
-! 1楼 (门面与大窗)
-&HOLE XB=-9.5,-8.0, -0.5,0.5, 0.5,2.5 /
-&HOLE XB=-6.5,-5.0, -0.5,0.5, 1.0,2.5 /
-! 2楼 (三列窗户)
-&HOLE XB=-9.5,-8.5, -0.5,0.5, 4.0,6.0 /
-&HOLE XB=-7.5,-6.5, -0.5,0.5, 4.0,6.0 /
-&HOLE XB=-5.5,-4.5, -0.5,0.5, 4.0,6.0 /
-! 3楼 (三列窗户)
-&HOLE XB=-9.5,-8.5, -0.5,0.5, 7.0,9.0 /
-&HOLE XB=-7.5,-6.5, -0.5,0.5, 7.0,9.0 /
-&HOLE XB=-5.5,-4.5, -0.5,0.5, 7.0,9.0 /
-
-
-! ---------------- 右侧浅色建筑 ----------------
-&OBST XB=4.0,10.0, 0.0,15.0, 0.0,10.0, SURF_ID='LIGHT_SIDING' /
-! 内部掏空
-&HOLE XB=4.5,9.5, 0.5,14.5, 0.5,9.5 /
-! [照片细节] 一楼亮眼的橙红色底商涂装 (贴一层0.5m的表皮)
-&OBST XB=4.0,10.0, -0.5,0.0, 0.0,3.5, SURF_ID='ORANGE_BASE' /
-! [照片细节] 右侧建筑标志性的多层塔楼/凸窗结构 (Turret)
-&OBST XB=4.5,6.5, -1.0,0.0, 3.5,12.0, SURF_ID='LIGHT_SIDING' /
-! 塔楼内部掏空并开细长窗户
-&HOLE XB=5.0,6.0, -1.5,0.5, 4.0,6.0 /
-&HOLE XB=5.0,6.0, -1.5,0.5, 7.0,9.0 /
-&HOLE XB=5.0,6.0, -1.5,0.5, 10.0,11.5 /
-! 塔楼右侧的普通立面窗户
-&HOLE XB=7.5,9.0, -0.5,0.5, 4.0,6.0 /
-&HOLE XB=7.5,9.0, -0.5,0.5, 7.0,9.0 /
-
-
-! ---------------- 中心起火建筑 ----------------
-! 主体外壳
-&OBST XB=-4.0,4.0, 0.0,15.0, 0.0,10.0, SURF_ID='DARK_SIDING' /
-! [照片细节] 一楼上方伸出的遮阳篷/招牌
-&OBST XB=-4.0,4.0, -1.5,0.0, 2.5,3.0, SURF_ID='AWNING' /
-! [照片细节] 二三层外向凸出的大型连排凸窗结构 (Bay Windows)
-&OBST XB=-3.5,3.5, -1.0,0.0, 3.5,9.5, SURF_ID='DARK_SIDING' /
-
-! 内部空间掏空 (火场主战场)
-&HOLE XB=-3.5,3.5, 0.5,14.5, 0.5,9.5 /
-
-! 烧穿的巨大屋顶破洞 (冲天火焰由此而出)
-&HOLE XB=-3.0,3.0, 2.0,13.0, 9.5,10.5 /
-
-! [照片细节] 在凸窗上开孔，火苗将冲破这些窗户喷涌而出
-! 3楼凸窗被大火突破
-&HOLE XB=-3.0,-1.5, -1.5,0.5, 7.0,9.0 / 
-&HOLE XB=-1.0, 1.0, -1.5,0.5, 7.0,9.0 / 
-&HOLE XB= 1.5, 3.0, -1.5,0.5, 7.0,9.0 / 
-! 2楼凸窗
-&HOLE XB=-3.0,-1.5, -1.5,0.5, 4.0,6.0 / 
-&HOLE XB=-1.0, 1.0, -1.5,0.5, 4.0,6.0 / 
-&HOLE XB= 1.5, 3.0, -1.5,0.5, 4.0,6.0 / 
-
+&SURF ID='BRICK_WALL', COLOR='MAROON' /          ! 左侧深红砖楼
+&SURF ID='BEIGE_SIDING', COLOR='TAN' /           ! 最左和一楼浅米色挂板
+&SURF ID='DARK_SIDING', COLOR='BROWN' /          ! 中心起火深色排屋
+&SURF ID='LIGHT_SIDING', COLOR='WHEAT' /         ! 右侧浅色塔楼排屋
+&SURF ID='ORANGE_BASE', COLOR='CORAL' /          ! 右侧一层橙红色店面
+&SURF ID='ROOF', COLOR='BLACK' /
+&SURF ID='STREET', COLOR='GRAY 40' /
+&SURF ID='SIDEWALK', COLOR='GRAY 70' /
+&SURF ID='WINDOW_GLASS', COLOR='SKY BLUE' /
+&SURF ID='WHITE_TRIM', COLOR='WHITE' /
+&SURF ID='AWNING', COLOR='SLATE GRAY' /
+&SURF ID='FIRE_ENGINE', COLOR='RED' /
+&SURF ID='CAR', COLOR='SILVER' /
+&SURF ID='FIREFIGHTER', COLOR='YELLOW' /
+&SURF ID='POLE', COLOR='BLACK' /
+&SURF ID='OVERHEAD_WIRE', COLOR='BLACK' /
+&SURF ID='SIGN', COLOR='WHITE' /
+&SURF ID='SMOKE_FIRE', HRRPUA=1800.0, COLOR='ORANGE' /
+&SURF ID='WINDOW_FIRE', HRRPUA=900.0, COLOR='RED' /
 
 ! ==========================================================
-! 7. 布置火源 (Fire Source) - 150 MW 级破坏力
+! 5. 场景几何建模 (OBST & HOLE) - 根据照片还原位置、形状、尺寸
+! 坐标约定：X为街道横向，Y为进深，Z为高度；建筑正面在Y=0附近。
 ! ==========================================================
-&OBST XB=-3.5,3.5, 1.0,14.0, 6.0,6.5, SURF_IDS='MASSIVE_FIRE','INERT','INERT' / 
+! 道路、路缘与人行道
+&OBST XB=-10.0,10.0, -10.0,-3.0, 0.0,0.1, SURF_ID='STREET' /
+&OBST XB=-10.0,10.0, -3.0,0.0, 0.0,0.18, SURF_ID='SIDEWALK' /
+
+! 前景车辆与消防员：照片右下消防车、街中银色车、两名消防员
+&OBST XB=6.2,10.0, -8.8,-5.3, 0.1,3.3, SURF_ID='FIRE_ENGINE' /
+&OBST XB=1.0,4.2, -5.4,-3.3, 0.1,1.35, SURF_ID='CAR' /
+&OBST XB=5.0,5.4, -5.7,-5.3, 0.0,1.9, SURF_ID='FIREFIGHTER' /
+&OBST XB=7.1,7.5, -6.2,-5.8, 0.0,1.9, SURF_ID='FIREFIGHTER' /
+
+! 路灯杆与照片中穿过火焰前景的电线
+&OBST XB=0.15,0.45, -2.7,-2.4, 0.0,12.2, SURF_ID='POLE' /
+&OBST XB=0.35,2.8, -2.55,-2.45, 11.0,11.2, SURF_ID='POLE' /
+&OBST XB=-9.5,9.0, -2.35,-2.25, 10.0,10.12, SURF_ID='OVERHEAD_WIRE' /
+
+! ---------------- 最左侧浅色建筑边缘 ----------------
+&OBST XB=-10.0,-8.9, 0.0,13.0, 0.0,13.0, SURF_ID='BEIGE_SIDING' /
+&HOLE XB=-9.9,-9.1, -0.4,0.4, 1.0,2.8 /
+
+! ---------------- 左侧深红砖/挂板建筑 ----------------
+&OBST XB=-8.9,-3.8, 0.0,14.0, 0.0,10.8, SURF_ID='BRICK_WALL' /
+&HOLE XB=-8.5,-4.2, 0.5,13.5, 0.5,10.0 /
+! 米色一层店面/住户基座
+&OBST XB=-8.9,-3.8, -0.25,0.0, 0.0,3.0, SURF_ID='BEIGE_SIDING' /
+! 三层窗户与白色窗框
+&HOLE XB=-8.1,-7.1, -0.5,0.5, 1.0,2.6 /
+&HOLE XB=-6.8,-5.8, -0.5,0.5, 1.0,2.6 /
+&HOLE XB=-5.2,-4.4, -0.5,0.5, 1.0,2.8 /
+&HOLE XB=-8.0,-7.0, -0.5,0.5, 4.1,6.1 /
+&HOLE XB=-6.1,-5.2, -0.5,0.5, 4.1,6.1 /
+&HOLE XB=-4.6,-4.0, -0.5,0.5, 4.1,6.1 /
+&HOLE XB=-8.0,-7.0, -0.5,0.5, 7.4,9.4 /
+&HOLE XB=-6.1,-5.2, -0.5,0.5, 7.4,9.4 /
+&HOLE XB=-4.6,-4.0, -0.5,0.5, 7.4,9.4 /
+&OBST XB=-8.9,-3.8, -1.0,0.0, 2.8,3.15, SURF_ID='AWNING' /
+
+! ---------------- 中心起火建筑：深色三层排屋与二三层凸窗 ----------------
+&OBST XB=-3.8,3.8, 0.0,14.5, 0.0,10.2, SURF_ID='DARK_SIDING' /
+&HOLE XB=-3.35,3.35, 0.5,14.0, 0.5,9.65 /
+&OBST XB=-3.5,3.5, -1.05,0.0, 3.4,9.5, SURF_ID='DARK_SIDING' /
+&OBST XB=-3.8,3.8, -1.35,0.0, 2.45,3.0, SURF_ID='AWNING' /
+&OBST XB=-3.8,3.8, 0.0,14.5, 10.0,10.45, SURF_ID='ROOF' /
+! 屋顶大破洞，主火焰从此喷出
+&HOLE XB=-3.0,3.0, 2.0,12.8, 9.7,10.7 /
+! 凸窗开口
+&HOLE XB=-3.1,-1.6, -1.4,0.5, 4.1,6.2 /
+&HOLE XB=-0.9, 0.9, -1.4,0.5, 4.1,6.2 /
+&HOLE XB= 1.6, 3.1, -1.4,0.5, 4.1,6.2 /
+&HOLE XB=-3.1,-1.6, -1.4,0.5, 7.1,9.2 /
+&HOLE XB=-0.9, 0.9, -1.4,0.5, 7.1,9.2 /
+&HOLE XB= 1.6, 3.1, -1.4,0.5, 7.1,9.2 /
+! 白色窄窗框/门柱用于Smokeview中辨认照片比例
+&OBST XB=-2.9,-2.75, -1.25,-1.15, 4.1,9.1, SURF_ID='WHITE_TRIM' /
+&OBST XB=-0.08,0.08, -1.25,-1.15, 4.1,9.1, SURF_ID='WHITE_TRIM' /
+&OBST XB=2.75,2.9, -1.25,-1.15, 4.1,9.1, SURF_ID='WHITE_TRIM' /
+
+! ---------------- 右侧浅色建筑：橙色底商与圆角塔楼/凸窗 ----------------
+&OBST XB=3.8,8.8, 0.0,13.8, 0.0,10.4, SURF_ID='LIGHT_SIDING' /
+&HOLE XB=4.2,8.4, 0.5,13.3, 0.5,9.8 /
+&OBST XB=3.8,8.8, -0.35,0.0, 0.0,3.4, SURF_ID='ORANGE_BASE' /
+! 以多段矩形近似照片中的圆角塔楼
+&OBST XB=4.3,6.3, -1.25,0.0, 3.0,11.4, SURF_ID='LIGHT_SIDING' /
+&OBST XB=4.55,6.05, -1.55,-1.25, 3.0,11.1, SURF_ID='LIGHT_SIDING' /
+&OBST XB=4.05,4.3, -0.9,-0.15, 3.0,10.9, SURF_ID='LIGHT_SIDING' /
+&OBST XB=6.3,6.55, -0.9,-0.15, 3.0,10.9, SURF_ID='LIGHT_SIDING' /
+&HOLE XB=4.8,5.8, -1.8,0.4, 4.0,5.7 /
+&HOLE XB=4.8,5.8, -1.8,0.4, 6.6,8.2 /
+&HOLE XB=4.8,5.8, -1.8,0.4, 9.0,10.6 /
+&HOLE XB=7.0,8.1, -0.5,0.5, 4.0,5.8 /
+&HOLE XB=7.0,8.1, -0.5,0.5, 6.8,8.6 /
+
+! ---------------- 背景连续排屋与店招 ----------------
+&OBST XB=8.8,10.0, 0.0,12.0, 0.0,8.8, SURF_ID='BEIGE_SIDING' /
+&OBST XB=7.8,8.6, -0.4,-0.2, 3.4,6.4, SURF_ID='SIGN' /
 
 ! ==========================================================
-! 8. 数据输出 (SLCF & BNDF)
+! 6. 火源 (Fire Source)
+! 修正说明：原模型把HRRPUA表面放在实体OBST的X向面，顶面为INERT，且大部分在封闭室内；
+! 在Smokeview选择HRRPUV时，主燃烧区不在可视屋顶喷流中，所以看不到明显火焰。
+! 这里改为附着在薄燃烧板上的VENT燃烧面：一个水平屋顶破口火源 + 窗口射流火源。
+! 每个VENT都贴在对应OBST表面，避免浮空VENT被FDS忽略，HRRPUV会直接出现在破口和窗口外。
+! ==========================================================
+&OBST XB=-3.0,3.0, 2.0,12.8, 9.60,9.72, SURF_ID='INERT' /
+&VENT XB=-3.0,3.0, 2.0,12.8, 9.72,9.72, SURF_ID='SMOKE_FIRE' /
+&OBST XB=-3.1,-1.6, -1.50,-1.42, 7.1,9.1, SURF_ID='INERT' /
+&OBST XB=-0.9, 0.9, -1.50,-1.42, 7.1,9.1, SURF_ID='INERT' /
+&OBST XB= 1.6, 3.1, -1.50,-1.42, 7.1,9.1, SURF_ID='INERT' /
+&OBST XB=-0.6,0.8, -1.50,-1.42, 4.3,5.8, SURF_ID='INERT' /
+&VENT XB=-3.1,-1.6, -1.42,-1.42, 7.1,9.1, SURF_ID='WINDOW_FIRE' /
+&VENT XB=-0.9, 0.9, -1.42,-1.42, 7.1,9.1, SURF_ID='WINDOW_FIRE' /
+&VENT XB= 1.6, 3.1, -1.42,-1.42, 7.1,9.1, SURF_ID='WINDOW_FIRE' /
+&VENT XB=-0.6,0.8, -1.42,-1.42, 4.3,5.8, SURF_ID='WINDOW_FIRE' /
+
+! ==========================================================
+! 7. 数据输出 (SLCF & BNDF)
 ! ==========================================================
 &SLCF PBX=0.0, QUANTITY='TEMPERATURE', VECTOR=.TRUE. /
+&SLCF PBY=-0.8, QUANTITY='HRRPUV' /
 &SLCF PBX=0.0, QUANTITY='HRRPUV' /
+&SLCF PBZ=9.8, QUANTITY='HRRPUV' /
 &BNDF QUANTITY='WALL TEMPERATURE' /
 
 &TAIL /
